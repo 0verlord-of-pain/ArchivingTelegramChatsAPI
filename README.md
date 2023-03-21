@@ -9,16 +9,14 @@ After the file has been downloaded, you must unzip it in a way convenient for yo
 Then you have 2 ways:
 
 1. Way
-Go to the folder where the file "ArchivingTelegramChatsAPI.csproj" is located.
+Go to the folder where the file "ArchivingTelegramChatsAPI.csproj" is located. 
 In the directory line write "cmd" and press "Enter".
 
 2. Wey
-You need to run terminal. For example, in Windows, press "Win + R". In the window that opens, write "cmd".
-Then you need to go to the directory where "ArchivingTelegramChatsAPI.csproj" is located.
-Command Example "cd P:\Programs\GitHub\ArchivingTelegramChatsAPI\ArchivingTelegramChatsAPI".
+You need to run terminal. For example, in Windows, press "Win + R". In the window that opens, write "cmd". 
+Then you need to go to the directory where "ArchivingTelegramChatsAPI.csproj" is located. 
+Command Example "cd P:\Programs\GitHub\ArchivingTelegramChatsAPI\ArchivingTelegramChatsAPI". 
 You should see "P:\Programs\GitHub\ArchivingTelegramChatsAPI\ArchivingTelegramChatsAPI>" (Example).
-
-
 
 After you need to write the command "dotnet run".
 
