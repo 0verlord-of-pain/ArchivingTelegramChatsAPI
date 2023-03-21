@@ -35,20 +35,28 @@ namespace ArchivingTelegramChatsAPI
 
             try
             {
+                Console.WriteLine("Create playwright");
+
                 var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
                 {
                     ExecutablePath = $"{chromePath}",
                     Headless = headlessValue
                 });
 
+                Console.WriteLine("Open web.telegram");
+
                 var page = await browser.NewPageAsync();
                 await page.GotoAsync("https://web.telegram.org/z/");
-                await page.WaitForTimeoutAsync(10000);
+                await page.WaitForTimeoutAsync(5000);
+
+                Console.WriteLine("Login from phone number");
 
                 await page.ClickAsync("//*[@type='button'][1]");
                 await page.WaitForTimeoutAsync(2000);
 
                 var phoneNumber = string.Empty;
+
+                Console.WriteLine("Get phone number");
 
                 while (true)
                 {
@@ -66,6 +74,7 @@ namespace ArchivingTelegramChatsAPI
                     }
                 }
 
+                Console.WriteLine("Enter phone number");
 
                 await page.FillAsync("input[id='sign-in-phone-number']", $"+{phoneNumber}");
                 await page.WaitForTimeoutAsync(2000);
@@ -73,9 +82,13 @@ namespace ArchivingTelegramChatsAPI
                 await page.ClickAsync("button[type='submit']");
                 await page.WaitForTimeoutAsync(2000);
 
+                Console.WriteLine("Wait login code");
+
                 Console.WriteLine("Please enter the code ...");
 
                 var code = string.Empty;
+
+                Console.WriteLine("Get login code");
 
                 while (true)
                 {
@@ -91,50 +104,67 @@ namespace ArchivingTelegramChatsAPI
                     }
                 }
 
+                Console.WriteLine("Enter login code");
+
                 await page.FillAsync("//*[@id='sign-in-code']", code);
                 await page.WaitForTimeoutAsync(2000);
 
+                Console.WriteLine("Get group list");
+
                 var groups = await page.QuerySelectorAllAsync("//*[contains(@class,'ListItem') and contains(@class,'group')]");
+
+                Console.WriteLine($"Groups count: {groups.Count}");
 
                 var groupHrefs = new List<string>();
 
-                foreach (var group in groups)
+                if (groups.Any())
                 {
-                    var groupBlockHtml = await group.InnerHTMLAsync();
-                    var groupHref = Regex.Match(groupBlockHtml, "href=\"#-(\\d+)\"").Groups[1].Value;
-                    groupHrefs.Add(groupHref);
-                    await group.ClickAsync(new ElementHandleClickOptions { Button = MouseButton.Right });
+                    Console.WriteLine("Groups Archiving");
+
+                    foreach (var group in groups)
+                    {
+                        var groupBlockHtml = await group.InnerHTMLAsync();
+                        var groupHref = Regex.Match(groupBlockHtml, "href=\"#-(\\d+)\"").Groups[1].Value;
+                        groupHrefs.Add(groupHref);
+                        await group.ClickAsync(new ElementHandleClickOptions { Button = MouseButton.Right });
+                        await page.WaitForTimeoutAsync(2000);
+
+                        await page.ClickAsync("//*[text() = 'Archive']");
+                        await page.WaitForTimeoutAsync(2000);
+                    }
+
+                    Console.WriteLine("Go to Archive");
+
+                    await page.ClickAsync("//*[contains(@class,'chat-item-archive')]");
                     await page.WaitForTimeoutAsync(2000);
 
-                    await page.ClickAsync("//*[text() = 'Archive']");
-                    await page.WaitForTimeoutAsync(2000);
-                }
+                    var querySelector = new StringBuilder();
+                    for (var i = 0; i < groupHrefs.Count; i++)
+                    {
+                        querySelector.Append(i == groupHrefs.Count - 1
+                            ? $"//*[contains(@href,'{groupHrefs[i]}')]"
+                            : $"//*[contains(@href,'{groupHrefs[i]}')]|");
+                    }
 
-                await page.ClickAsync("//*[contains(@class,'chat-item-archive')]");
-                await page.WaitForTimeoutAsync(2000);
+                    Console.WriteLine("Get groups to pin");
 
-                var querySelector = new StringBuilder("//*[");
-                for (var i = 0; i < groupHrefs.Count; i++)
-                {
-                    querySelector.Append(i == groupHrefs.Count - 1
-                        ? $"contains(@href,'{groupHrefs[i]}')"
-                        : $"contains(@href,'{groupHrefs[i]}') and");
-                }
+                    var groupsToFix = await page.QuerySelectorAllAsync(querySelector.ToString());
 
-                querySelector.Append("]");
+                    Console.WriteLine($"Groups to pin count: {groupsToFix.Count}");
 
-                var groupsToFix = await page.QuerySelectorAllAsync(querySelector.ToString());
 
-                foreach (var group in groupsToFix)
-                {
-                    var groupBlockHtml = await group.InnerHTMLAsync();
-                    var groupHref = Regex.Match(groupBlockHtml, "href=\"#-(\\d+)\"").Groups[1].Value;
-                    groupHrefs.Add(groupHref);
-                    await group.ClickAsync(new ElementHandleClickOptions { Button = MouseButton.Right });
-                    await page.WaitForTimeoutAsync(2000);
+                    Console.WriteLine($"Pinning groups");
+                    foreach (var group in groupsToFix)
+                    {
+                        var groupBlockHtml = await group.InnerHTMLAsync();
+                        var groupHref = Regex.Match(groupBlockHtml, "href=\"#-(\\d+)\"").Groups[1].Value;
+                        groupHrefs.Add(groupHref);
+                        await group.ClickAsync(new ElementHandleClickOptions { Button = MouseButton.Right });
+                        await page.WaitForTimeoutAsync(2000);
 
-                    await page.ClickAsync("//*[text() = 'Pin to top']");
-                    await page.WaitForTimeoutAsync(2000);
+                        await page.ClickAsync("//*[text() = 'Pin to top']");
+                        await page.WaitForTimeoutAsync(2000);
+                    }
                 }
 
                 Console.WriteLine("Enter to close program");
