@@ -8,6 +8,8 @@ namespace ArchivingTelegramChatsAPI
     {
         static async Task Main(string[] args)
         {
+            var log = new StringBuilder();
+
             using var playwright = await Playwright.CreateAsync();
             var chromePath = string.Empty;
 
@@ -35,7 +37,7 @@ namespace ArchivingTelegramChatsAPI
 
             try
             {
-                Console.WriteLine("Create playwright");
+                log.Append("Log: Create playwright\n");
 
                 var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
                 {
@@ -43,20 +45,20 @@ namespace ArchivingTelegramChatsAPI
                     Headless = headlessValue
                 });
 
-                Console.WriteLine("Open web.telegram");
+                log.Append("Log: Open web.telegram\n");
 
                 var page = await browser.NewPageAsync();
                 await page.GotoAsync("https://web.telegram.org/z/");
                 await page.WaitForTimeoutAsync(5000);
 
-                Console.WriteLine("Login from phone number");
+                log.Append("Log: Login from phone number\n");
 
                 await page.ClickAsync("//*[@type='button'][1]");
                 await page.WaitForTimeoutAsync(2000);
 
                 var phoneNumber = string.Empty;
 
-                Console.WriteLine("Get phone number");
+                log.Append("Log: Get phone number\n");
 
                 while (true)
                 {
@@ -74,7 +76,7 @@ namespace ArchivingTelegramChatsAPI
                     }
                 }
 
-                Console.WriteLine("Enter phone number");
+                log.Append("Log: Enter phone number\n");
 
                 await page.FillAsync("input[id='sign-in-phone-number']", $"+{phoneNumber}");
                 await page.WaitForTimeoutAsync(2000);
@@ -82,13 +84,13 @@ namespace ArchivingTelegramChatsAPI
                 await page.ClickAsync("button[type='submit']");
                 await page.WaitForTimeoutAsync(2000);
 
-                Console.WriteLine("Wait login code");
+                log.Append("Log: Wait login code\n");
 
                 Console.WriteLine("Please enter the code ...");
 
                 var code = string.Empty;
 
-                Console.WriteLine("Get login code");
+                log.Append("Log: Get login code\n");
 
                 while (true)
                 {
@@ -104,22 +106,22 @@ namespace ArchivingTelegramChatsAPI
                     }
                 }
 
-                Console.WriteLine("Enter login code");
+                log.Append("Log: Enter login code\n");
 
                 await page.FillAsync("//*[@id='sign-in-code']", code);
                 await page.WaitForTimeoutAsync(2000);
 
-                Console.WriteLine("Get group list");
+                log.Append("Log: Get group list\n");
 
                 var groups = await page.QuerySelectorAllAsync("//*[contains(@class,'ListItem') and contains(@class,'group')]");
 
-                Console.WriteLine($"Groups count: {groups.Count}");
+                log.Append($"Log: Groups count: {groups.Count}\n");
 
                 var groupHrefs = new List<string>();
 
                 if (groups.Any())
                 {
-                    Console.WriteLine("Groups Archiving");
+                    log.Append("Log: Groups Archiving\n");
 
                     foreach (var group in groups)
                     {
@@ -133,7 +135,7 @@ namespace ArchivingTelegramChatsAPI
                         await page.WaitForTimeoutAsync(2000);
                     }
 
-                    Console.WriteLine("Go to Archive");
+                    log.Append("Log: Go to Archive\n");
 
                     await page.ClickAsync("//*[contains(@class,'chat-item-archive')]");
                     await page.WaitForTimeoutAsync(2000);
@@ -146,14 +148,14 @@ namespace ArchivingTelegramChatsAPI
                             : $"//*[contains(@href,'{groupHrefs[i]}')]|");
                     }
 
-                    Console.WriteLine("Get groups to pin");
+                    log.Append("Log: Get groups to pin\n");
 
                     var groupsToFix = await page.QuerySelectorAllAsync(querySelector.ToString());
 
-                    Console.WriteLine($"Groups to pin count: {groupsToFix.Count}");
+                    log.Append($"Log: Groups to pin count: {groupsToFix.Count}\n");
 
 
-                    Console.WriteLine($"Pinning groups");
+                    log.Append("Log: Pinning groups\n");
                     foreach (var group in groupsToFix)
                     {
                         var groupBlockHtml = await group.InnerHTMLAsync();
@@ -174,6 +176,8 @@ namespace ArchivingTelegramChatsAPI
             }
             catch
             {
+                Console.WriteLine(log.ToString());
+
                 Console.WriteLine("Error. Please restart program");
             }
         }
