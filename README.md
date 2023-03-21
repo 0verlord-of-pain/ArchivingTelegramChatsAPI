@@ -1,4 +1,4 @@
-# ArchivingTelegramChatsAPI
+# ArchivingTelegramChatsAPI .Net Core 6
 
 If you want to use it, you will need an IDE supported by .Net Core 6 and suitable for your operating system. For example, under Windows 10 64-bit, [Visual Studio 2022](https://visualstudio.microsoft.com/) is suitable.
 
