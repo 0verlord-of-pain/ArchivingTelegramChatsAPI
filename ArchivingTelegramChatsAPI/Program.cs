@@ -33,7 +33,7 @@ namespace ArchivingTelegramChatsAPI
             Console.WriteLine("Y - yes. N - no");
 
             var showBrowser = Console.ReadLine();
-            var headlessValue = !(!string.IsNullOrEmpty(showBrowser) && showBrowser == "Y");
+            var headlessValue = !(!string.IsNullOrEmpty(showBrowser) && showBrowser.ToLower() == "y");
 
             try
             {
